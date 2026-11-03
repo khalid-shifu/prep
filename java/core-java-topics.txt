@@ -1,0 +1,86 @@
+CORE JAVA TOPICS 
+
+1. JVM Internals
+   - How javac, bytecode, class loading, verification and the JIT compiler work
+   - Class loaders, parent delegation model
+   - Runtime memory areas: heap, stack, metaspace, PC register
+   - Object layout in memory, escape analysis
+
+2. Garbage Collection
+   - Generational heap, minor vs major GC, GC roots
+   - Collectors: Serial, Parallel, G1, ZGC, Shenandoah
+   - Reference types: strong, soft, weak, phantom
+   - GC tuning, reading GC logs
+   - Memory leaks: common causes and how to find them
+
+3. Java Memory Model and Concurrency
+   - Threads and thread lifecycle
+   - synchronized, volatile, happens-before, visibility vs atomicity
+   - Locks: ReentrantLock, ReadWriteLock, StampedLock
+   - Atomics and CAS
+   - Thread pools, ExecutorService, ThreadPoolExecutor tuning
+   - CompletableFuture
+   - Concurrent utilities: CountDownLatch, CyclicBarrier, Semaphore, BlockingQueue
+   - ConcurrentHashMap internals
+   - Deadlock, livelock, starvation, race conditions
+   - ThreadLocal and its pitfalls
+   - Virtual threads (Java 21)
+
+4. Collections Internals
+   - HashMap internals: hashing, resize, treeification
+   - HashSet, LinkedHashMap (LRU cache), TreeMap
+   - ArrayList vs LinkedList vs ArrayDeque
+   - Fail-fast vs fail-safe iterators
+   - Immutable collections, Comparable vs Comparator
+   - Choosing the right collection
+
+5. equals(), hashCode() and Object Contracts
+   - equals/hashCode contract, mutable keys problem
+   - Immutability and how to design immutable classes
+   - Shallow vs deep copy, clone
+
+6. Strings
+   - String pool, intern, immutability
+   - String vs StringBuilder vs StringBuffer
+   - Compact strings, string concatenation internals
+
+7. Generics
+   - Type erasure, bounded types, wildcards, PECS
+   - Generic method limitations
+
+8. Exceptions
+   - Checked vs unchecked, custom exceptions
+   - try-with-resources, suppressed exceptions
+   - finally pitfalls, exception handling best practices
+
+9. Java 8+ Features
+   - Lambdas, functional interfaces, method references
+   - Streams: lazy evaluation, flatMap, collectors, parallel stream pitfalls
+   - Optional: correct usage and misuse
+   - java.time API
+   - Default and static interface methods
+
+10. Modern Java (9 to 21+)
+   - var, records, sealed classes, text blocks
+   - Pattern matching (instanceof, switch), switch expressions
+   - Sequenced collections, virtual threads
+
+11. OOP and Design
+   - Abstract class vs interface, composition over inheritance
+   - Overloading vs overriding, method hiding, dynamic dispatch
+   - SOLID principles
+   - Common design patterns: Singleton, Factory, Builder, Strategy, Observer, Decorator, Proxy
+
+12. Other Core Topics
+   - Autoboxing, Integer cache, pass-by-value
+   - Inner classes, anonymous classes, enums
+   - Serialization and its security problems
+   - Reflection, annotations, dynamic proxies
+   - I/O vs NIO, try-with-resources with streams
+   - Access modifiers, static/final/transient/volatile keywords
+
+13. Performance and Troubleshooting
+   - Profiling with JFR and VisualVM
+   - Thread dumps, heap dumps
+   - Common JVM flags (-Xmx, -Xms, -XX options)
+   - Finding CPU, memory and lock contention problems
