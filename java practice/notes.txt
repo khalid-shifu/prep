@@ -1,0 +1,65 @@
+1. lambda: compact way to write method body for Functional interface, instead of anonymus class
+
+2. method reference:
+
+	shorter way to write lambda expression. 
+	
+	
+	System.out::println
+	
+	
+	Function<String, Integer> f1 = Integer::parseInt;
+	
+	Function<String, Integer> f2 = s -> Integer.parseInt(s);
+	
+	f2.apply("123");
+	
+	
+Quick comparison
+Type	                  Example
+-----------------------------------------
+Static	                   Integer::parseInt
+Specific instance	       message::toUpperCase
+Arbitrary instance	       String::toUpperCase
+Constructor	               ArrayList::new
+
+
+	type:
+	
+	1. Static method reference
+	
+		Syntax: ClassName::staticMethod		
+		
+		Function<String, Integer> converter = Integer::parseInt;
+		
+		System.out.println(converter.apply("123")); 
+		
+	2. Bound instance method reference
+	
+		StringProcessor processor = new StringProcessor();
+		
+		Function<String, String> f = processor::process;
+		
+		 System.out.println(f.apply("khalid_shifu"));
+		 
+	3. Unbound instance method reference
+	
+		Syntax: ClassName::instanceMethod
+		
+		Function<String, String> f = String::toUpperCase;
+		
+		Function<User, String> f = User::getName;
+		System.out.println(f.apply(new User()));
+		// Output: Khalid
+		
+	4. Constructor reference
+	
+		Syntax: ClassName::new
+		Supplier<ArrayList<String>> supplier = ArrayList::new;
+		
+		
+		ArrayList<String> names = supplier.get();
+        names.add("Khalid");
+        names.add("Rafiq");
+
+        System.out.println(names);
