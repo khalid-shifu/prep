@@ -1,0 +1,606 @@
+
+
+offerings:
+	1. high availability
+	2. scalability or high performence
+	3. disaster recovery - backup and restore
+
+
+Components:
+	1. Node: master node/worker node, server/machine
+	2. pod: Abstraction over container, a wrapper over container or containers. provide shared ip,
+		network and storage
+		
+		* each pod gets its own IP adress
+		* if crashes, new pod is up, and get new IP adress
+	
+	3. service: * static / permanent ip address can be assigned to each pod
+				* if pod dies, service and ip adress will stay
+				* external serivce: make app accessible through browser
+				* internal service: for things like database
+				* service is also a load balancer, then there is 2 node has the same application,
+					it forward request with node's pod is least busy.
+				
+	
+	4. ingress: * service url usually IP adress, ingress provides is human readable url
+				* with ingress instead of service, request goes to ingress, then it forwards to
+					service
+					
+	5. configMap: * what problem solves? : if database service change, we gotta change application's properties file, create image,
+				and then push, which is tideus. What config map does is, configuration data. cannot put username pass
+				
+	6. secret: * like config map, but for username, pass, and base64 encoded
+	
+	7. volumes: * persistant storage, not part of kubernetes cluster,  these is out of k8 cluster
+	
+	8. deployments: service is also a load balancer, then there is 2 node has the same application, it forward request with node's pod is least
+					busy. To create 2nd replica of application pod, we wont create 2nd pod. We will define blue prints of for pods, and declare
+					how many replica to run. That blue print is called deployments. Scale up and down. Deployement is another wrapper over pods.
+					
+	
+	9. statefulSet: We cannot replicate db with deployments. Will have data sync issue. This is why we will use statefulset. It will work like deployments
+			but makes sure db read and writes are synronized. This is tideus. 
+			
+			
+			
+			
+    
+	#########
+	Node process:
+	#########
+	
+	Worker::
+	
+		* each node has multiple pods on it
+		* worker nodes do the actual work
+		* 3 proces must be installed on every node, that are used to manage the pods
+		
+		* processes: [worker node]
+			1. container runtime: (docker)
+			2. kubelet: schedule pods, and containers, *it has inferface with container runtime and pods. 
+			3. KubeProxy: responsible forwarding request from services to pods
+	
+	
+	Master: 
+		Master node 4 processes, to control, cluster state and worker nodes
+		
+		1. Api server: Deploy a new application, interact with api server with client (kubelet, UI, dashbaord). Its cluster gate way. 
+				Acts as a gate keeps as a authentication. Create new service, deploy new app, create pods.  Validate request and forward to 
+				other process. 
+				
+		2. Scheduler: After api server valides and it hands it over scheduler. Handles, which worker node the new pod will be scheduled.
+			Go through the worker nodes and find least busy node then schdule to execute request.
+			
+		3. Controller manager: If pod dies, need to detect it dies. Detect state changes like crashing of pods. And tries to recover the cluster 
+			state. If that happens request to scheduler to schedule the execution.
+			
+		4. ectd: key value store. Cluster brain. Every change in cluster, get saved in key value store. With this, schedule knows about recourses.
+			with this controller manager knows how pod dies. 
+		
+		In practice, there can be multiple master nodes.
+		
+		
+	Master process has less work so less resource.
+	
+	
+	
+	Minikube and kubectl
+	
+	Production clutster set up:
+		1. multiple masters
+		2. multiple workers
+		
+		
+	test in local env:
+		1. cannot set up cluster like this
+		
+		Minikube: 
+		  * minikube is 1 node with cluster, master processes and worker processes.
+		  * node will have docker container re installed
+		  * runs through virtual box
+		  * node will run in virtual box
+		  
+		
+		kubectl:
+		
+	     * interact with cluster
+		 * cmd line tool for k8 cluster
+		 * to talk with "API server" we need client, that client is kubectl
+		 
+		 
+	
+	    $ minikube version
+		$ kubectl version --client
+		
+		$ minikube start
+		$ kubectl get nodes
+		$ minikube status
+		
+		$ kubectl get pod
+		$ kubectl get services
+		$ kubectl create 
+		$ 
+		
+		
+		* we do not create pods directly, we create abtraction layer over pods called Deployment.
+		
+		  
+		  
+		*** create deployments
+		
+		$ kubectl create deployment NAME --image=image [--dry-run] [options]
+		
+		** another layer between "Deployment" and "Pods" are called "Replicaset" are handled automatically buy k8
+		
+		
+		Layers:
+		
+		 1. deployments manages replicaset
+		 2. Replicaset manages all the replicas of a pod
+		 3. pod is an abstraction of container
+		 
+		
+		$ kubectl edit deployment DEPLOYMENT_NAME
+		
+		$ kubectl logs POD_NAME
+		 
+		$ kubectl exec -it POD_NAME -- bin/bash
+			$ containers terminal: 
+	    
+		$ kubectl delete deployment DEPLOYMENT_NAME
+		
+		$ kubectl apply -f config-file.yml
+		
+		$ kubectl describe pod POD_NAME
+		
+		
+		K8 configuration file::::
+		
+		Deployment:::::
+		
+		
+		$ kubectl apply -f nginx-deployment.yml
+		
+		$ kubectl delete -f deployment.yaml
+		
+		$ kubectl delete -f service.yaml
+		
+		$
+		
+		
+		Service::::::::::
+		-------------------------------
+		
+		$ kubectl describe service SERVICE_NAME  [ how can we validate the service has the right pods ]
+		
+		    -> end points but be the ip address of the pod
+		
+		$ kubectl get pod -o wide  [o more output]
+		
+		$ kubectl get deployment nginx-deployment -o yaml  [ how to check status, get updating configuration of deployment which are in ectd ]
+		
+		
+		
+
+
+
+    ***** Configuration file has 3 parts:
+	
+		
+	
+		1. metadata: name, labels
+		2. specification: attributes specifics to the kind (deployment/service)
+		3. status: automatically generated and edited by k8
+		
+		
+		first two lines:
+		---------------------------
+		apiVersion: apps/v1
+		kind: Deployement #could be service
+		
+		
+		Deployment:
+		-------------------------------------
+		how pod configured in deployment?
+		
+		template: #has own meta data and specification
+		
+		template:
+			metadata:
+			
+			spec:  
+			
+		these configuration are for pods
+		
+		
+		Labels and selectors:
+		------------------------------
+		
+		1. metadata part contains labels
+		2. spec contains selectors
+		
+		
+		** pods get the label through the template blueprint
+		** this label is matched by the selector
+		
+		
+		***** so: pods has label app:nginx, now deployment connects with all thhe pods
+		 with-
+		 
+		 
+			spec:
+				selector:
+					matchLables:
+						app: nginx
+		
+		
+		**** Kubernetes does not require the labels to be identical.
+				It only requires that all labels in the selector are present on the Pod.
+						
+	    
+		***** also, deployment has 
+		
+			labels:
+				app: nginx
+			
+			now, service connects with deployment & its pods with this label
+			
+			service config:
+			-------------
+			spec:
+				selector:
+					app: nginx
+					
+					
+					
+					
+					
+		ports in service and pods
+		-----------------------------------
+		
+		* service has port, where service itself is accessible at. so service is listening at port 80
+			
+		ports:
+			- protocol: TCP
+			  port: 80
+			  targetPort: 8080
+		
+		
+		targetPort of service should match the continerPort of the pod, in the deployment
+					
+			
+		
+		***********************
+		Web application setup
+		***********************
+		
+		Over view:
+		
+		
+		1. Create mondo DB pod (need deployment), create internal service for this, no external request only 
+				compotents on the same cluster talk to it
+		2. create deployment for mondo express, new database url for mongo db, need 
+				database info pass to be in Deployment env variables
+		
+		3. create Config map that has data base url
+		
+		4. create secret that has database credentials
+		
+		5. secrect and config both will be reference in deployment
+		
+		6. Create an external service for mongo express to be accessed in browser. 
+		
+		
+		
+		
+		
+		
+		$ kubectl get all
+		
+		
+		
+		*** secrets must be base64 encoded
+		
+		$ echo -n 'username'  | base64
+		$ kubectl get pod --watch
+		
+		  **** external service does not get ip assigned in minikube, use following
+		
+		$  minikube service mongodb-express-service
+		
+		
+	
+	*********************
+	namespace explained
+	*********************
+	
+	1. organise resources in namespaces
+	2. virtual cluster inside a cluster
+	3. multiple namespaces inside a cluster
+	4. Defualt namespaces
+		4.1 kube-system (system process not for us to use)
+		4.2 kubernetes-dashboard (specific to minikube)
+		4.3 kube-public (has config name, contains cluster info, kubectl cluster-info)
+		4.4 kube-node-lease (holds info of heartbeats of node, each nodes gets its own object)
+		4.5 default (create resources in the beginning)
+		
+    $ kubectl create namespace my-namespace
+	
+	5. create namespace with config file
+	
+	
+	what is the need for this?
+	------------------------------
+	6. Group resources in namespace (database get different namespace, monitoring name space and so on)
+	
+	7. Many teams, same application can have issues. Two teams can have similar named deployment, which will
+		override other deployment. So, each team can have a namespace
+		
+	8. Resource sharing: Staging and development both can share nginx or elastic stack
+		
+	9. Resource sharing: Blue/green deployment. (blue current production, green next production)
+	
+	10. Access and resource limits on namespaces: limit resources /assign resources to specific namespaces
+	
+	
+	Characteristics of namespaces:
+	---------------------------------
+		
+    1. ConfigMap of TeamA samespace that references's DB service in  DB namespace, teamB cannot use that 
+		configmap, they have to use different one
+		
+		same for secrets
+		
+	2. Service can be referenced in different namesapces
+	
+	    configmap configuration: 
+			
+	    db_url: mysql-service.database   [database is the namespace
+		
+	3. componets cant be created within a namespace
+	     example: volum, accesible through whole cluster
+		 
+	
+	4. change defualt namespace: with kubens!
+	
+	
+	
+	
+	
+	
+	
+	
+	**************
+	Ingress
+	**************
+	
+	1. External service should be internal service, and request first come to
+		ingress, then will be forwarded to internal service
+		
+	2. spec:
+		rules:
+		- host: myapp.come
+	      http:                 #this http is not same as url why? this is step 2
+			paths:
+			- backend
+			  serviceName: myapp-internal-service
+			  servicePort: 8080
+			  
+	
+    3. internal service vs external. internal service does not have nodePort starts
+		from 30000. Instead of type loadBalancer (which is used in external),
+		type is defualt type: ClusterIP
+		
+	4. Host: 
+		a. valid domain address
+		b. map domain name to Node's IP address, which is the entrypoint
+			record/map domain to entry point node's IP address
+	
+	
+	5. Ingress YAML wont be enough! We need ingress controller pod which will have
+		routing rules.
+		
+	6. Ingress controller: evaluate rules, manages redirections, entrypoint to 
+		cluster. Many third party implementations
+	
+	7. k8s Nginx Ingress controller
+	
+	8. We will need a entiry point: which can be software or hardware solution.
+		Or in AWS or Azure or other cloud services it can be their load balancers.
+		 
+	9. Proxy server: 
+		- seperate server
+		- public IP address and open ports
+		- entry point to cluster
+		
+		
+	Request -> proxy server -> ingress controller -> service
+	
+	
+	
+	Steps to setup:
+	
+	1. Install ingress controller in minikube
+	
+		$ minikube addons enable ingress
+		$ kubectl get pod -n kube-system
+	
+	2. Create ingress rule, AKA the config file for ingress
+	
+	
+	
+	  apiVersion: networking.k8s.io/v1
+		kind: Ingress
+		metadata:
+		  name: dashboard-ingress
+		  namespace: kubernetes-dashboard
+		spec:
+		  rules:
+		  - host: dashboard.com
+			http:
+			  paths:
+			  - path: /
+				pathType: Prefix
+				backend:
+				  service:
+					name: kubernetes-dashboard
+					port:
+					  number: 80
+					  
+	
+	    $ kubectl get ingress -n kubernetes-dashboard
+		
+		$ kubectl get ingress -n kubernetes-dashboard
+		
+		NAME                CLASS    HOSTS           ADDRESS        PORTS   AGE
+		dashboard-ingress   <none>   dashboard.com   192.168.49.2   80      9m4s
+
+    
+	
+	3. create a record with the ip and domain in:
+	
+		$ vim /c/Windows/System32/drivers/etc/hosts
+		
+		127.0.0.1 dashboard.com
+		
+		192.168.49.2 dashboard.com # this wont work now
+		
+		$ kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
+		$ minikube tunnel
+
+
+
+    4. default backend: 
+		
+		$ kubecutl descripbe ingress dashboard-ingress -n kuberetes-dashboard
+	
+	
+	  If a req comes in cluster, that is not mapped to any backend, defualt backend is used to handle that request.
+	  
+	  Used to: Define custom error message, page not found.
+	 
+	  For custom: Create a internal service with the same name, "default-http-backend:80"
+	  
+	  
+	  
+	  
+	Routing
+	--------------------
+	
+	1. Multiple paths for same host
+		
+		spec:
+			rules:
+			- host: myapp.com
+			http:
+				paths:
+				- path: /analytics
+				pathType: Prefix
+				backend:
+					service:
+						name: analytics-service
+						port: 
+							number: 3000
+				
+				- path: /shopping
+				pathType: Prefix
+				backend:
+					service:
+						name: Shopping-service
+						port: 
+							number: 8080
+
+						
+	2. Multiple sub-domains or domains
+	
+		apiVersion: networking.k8s.io/v1
+		kind: Ingress
+		metadata:
+		  name: myapp-ingress
+		spec:
+		  rules:
+			- host: analytics.myapp.com
+			  http:
+				paths:
+				  - path: /
+					pathType: Prefix
+					backend:
+					  service:
+						name: analytics-service
+						port:
+						  number: 3000
+			- host: shopping.myapp.com
+			  http:
+				paths:
+				  - path: /
+					pathType: Prefix
+					backend:
+					  service:
+						name: shopping-service
+						port:
+						  number: 8080
+						  
+						  
+		
+	
+	##############
+	Configuraring TLS certificate:
+	##############
+	
+	spec:
+	  tls:
+	  - hosts:
+		- myapp.com
+		secretName: myapp-secret-tls
+			
+		rules:
+		  - host: myapp.com
+		  ....
+		  ....
+		  
+		  
+		  
+		  
+	 * the secrect configuration
+	 
+	 apiVersion: v1
+	 kind: Secrect
+	 metadata: 
+	   name: myapp-secret-tls
+	   namespace: defualt
+	 data:
+	   tls.crt: base64 encoded cert
+	   tls.key: base64 encoded key
+	 type kubernetes.io/tls
+	   
+	   
+	 
+	 1. data keys are need to be "tls.crt" and "tls.key"
+	 2. values are file contents Not file paths/locations
+	 3. secrect compoment must be in the same name space as the ingress compotents
+	 
+	 
+	 ----------------------------------------------
+	 **** Helm - package manager of K8
+	 -----------------------------------------
+	 
+	 Helm, help charts, tiller
+	 
+	 ** Helm: package manager for kubernetes. To package YAML files and distribute them in public and private repositories
+	 
+		Help charts:
+		
+			1. Bundle of YAML files
+			2. create your own helm charts with hemp
+			3. push them to helm repository
+			4. downlod and use existing help charts
+			
+	
+	    * Helm is templating engine: 
+		* define a blueprint or template file or all the microservices
+		* values that are dynamic are placed by place holders
+		* values.yaml here you can define all those values that you are gonna template file
+		* practical for CI/CD
+		* Deploy same application across different environments
+		
+		
